@@ -25,7 +25,7 @@ public:
     // Fires an event with the specified string to all event listeners.
     void Fire(const std::string& value)
     {
-        std::cout << "Dispatching with value: " << value << std::endl;
+        std::cout << "Dispatching with value: \"" << value << '"' << std::endl;
         for (const auto& callback : m_listeners)
         {
             int result = callback(value);
@@ -43,10 +43,22 @@ static int GlobalListener(const std::string& value)
 {
     std::cout << "Global function says: " << value;
 
-    return 0;
+    return 1;
 }
 
-// A class with listener functions.
+// A functor, i.e. a class that implements the () operator.
+class ListenerFunctor
+{
+public:
+    int operator()(const std::string& value)
+    {
+        std::cout << "Functor says: " << value;
+
+        return 2;
+    }
+};
+
+// A class with with static and instance listener functions.
 class TestListener
 {
 public:
@@ -71,7 +83,7 @@ public:
 
 private:
     // A value for the static member function to use.
-    static const int m_staticValue{ 1 };
+    static const int m_staticValue{ 3 };
 
     // A value for the instance member function to use.
     int m_instanceValue;
@@ -81,25 +93,30 @@ int main()
 {
     EventDispatcher dispatcher;
 
-    // Add a global function (function pointer) as a listener.
+    // 1) Add a global function (function pointer) as a listener.
     dispatcher.AddListener(&GlobalListener);
 
-    // Add a class static member function as a listener.
+    // 2) Add a functor (function object) as a listener.
+    ListenerFunctor functor;
+    dispatcher.AddListener(functor);
+
+    // 3) Add a class static member function as a listener.
     dispatcher.AddListener(&TestListener::StaticListener);
 
-    // Add a class instance member function as a listener.
-    // NOTE: This requires an instance of the class to provide state for the function ("this").
-    TestListener testListener(2);
+    // 4) Add a class instance member function as a listener.
+    // NOTE: This requires an instance of the class to provide state for the function ("this"), and
+    // this is provided with std::bind().
+    TestListener testListener(4);
     dispatcher.AddListener(
         std::bind(&TestListener::InstanceListener, &testListener, std::placeholders::_1));
 
-    // Add a lambda (anonymous) function as a listener.
+    // 5) Add a lambda (anonymous) function as a listener.
     dispatcher.AddListener(
         [](const std::string& value) -> int
         {
             std::cout << "Lambda function says: " << value;
 
-            return 3;
+            return 5;
         });
 
     // Fire an event.
