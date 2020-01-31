@@ -14,7 +14,10 @@
 *.userprefs
 
 # Build results
+<<<<<<< HEAD
 Build/
+=======
+>>>>>>> 4a3c7b09a3963ab85ea29b119c6bab9381cf7eb0
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
